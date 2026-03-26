@@ -1,0 +1,331 @@
+openapi: 3.1.0
+info:
+  title: CollectionAndLoan API
+  version: 1.0.0
+  description: REST API for collection management and item loans.
+servers:
+  - url: http://localhost:3000
+    description: Local development
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string, format: email }
+    Friend:
+      type: object
+      properties:
+        id: { type: integer }
+        user_id: { type: integer }
+        name: { type: string }
+        email: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    Item:
+      type: object
+      properties:
+        id: { type: integer }
+        user_id: { type: integer }
+        title: { type: string }
+        category:
+          type: string
+          enum: [game, book, movie, boardgame, other]
+        platform: { type: string, nullable: true }
+        notes: { type: string, nullable: true }
+        cover_image_url: { type: string, nullable: true }
+        status:
+          type: string
+          enum: [available, lent]
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    Loan:
+      type: object
+      properties:
+        id: { type: integer }
+        user_id: { type: integer }
+        item_id: { type: integer }
+        friend_id: { type: integer }
+        loan_date: { type: string, format: date }
+        expected_return_date: { type: string, format: date, nullable: true }
+        returned_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        item:
+          type: object
+          properties:
+            id: { type: integer }
+            title: { type: string }
+            status: { type: string }
+        friend:
+          type: object
+          properties:
+            id: { type: integer }
+            name: { type: string }
+            email: { type: string, nullable: true }
+paths:
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user]
+              properties:
+                user:
+                  type: object
+                  required: [name, email, password, password_confirmation]
+                  properties:
+                    name: { type: string }
+                    email: { type: string, format: email }
+                    password: { type: string, minLength: 6 }
+                    password_confirmation: { type: string, minLength: 6 }
+      responses:
+        "201":
+          description: User created
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login and get JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        "200":
+          description: Login successful
+  /api/v1/auth/me:
+    get:
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+
+  /api/v1/friends:
+    get:
+      tags: [Friends]
+      security:
+        - bearerAuth: []
+      summary: List friends
+      responses:
+        "200":
+          description: Friends list
+    post:
+      tags: [Friends]
+      security:
+        - bearerAuth: []
+      summary: Create friend
+      responses:
+        "201":
+          description: Friend created
+
+  /api/v1/friends/{id}:
+    get:
+      tags: [Friends]
+      security:
+        - bearerAuth: []
+      summary: Get friend
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Friend detail
+    patch:
+      tags: [Friends]
+      security:
+        - bearerAuth: []
+      summary: Update friend
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Friend updated
+    delete:
+      tags: [Friends]
+      security:
+        - bearerAuth: []
+      summary: Delete friend
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Friend deleted
+
+  /api/v1/items:
+    get:
+      tags: [Items]
+      security:
+        - bearerAuth: []
+      summary: List items (supports category/status filters)
+      parameters:
+        - in: query
+          name: category
+          schema: { type: string }
+        - in: query
+          name: status
+          schema: { type: string }
+      responses:
+        "200":
+          description: Items list
+    post:
+      tags: [Items]
+      security:
+        - bearerAuth: []
+      summary: Create item
+      responses:
+        "201":
+          description: Item created
+
+  /api/v1/items/{id}:
+    get:
+      tags: [Items]
+      security:
+        - bearerAuth: []
+      summary: Get item
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Item detail
+    patch:
+      tags: [Items]
+      security:
+        - bearerAuth: []
+      summary: Update item
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Item updated
+    delete:
+      tags: [Items]
+      security:
+        - bearerAuth: []
+      summary: Delete item
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Item deleted
+
+  /api/v1/loans:
+    get:
+      tags: [Loans]
+      security:
+        - bearerAuth: []
+      summary: List loans (supports item_id, friend_id, active=true)
+      parameters:
+        - in: query
+          name: item_id
+          schema: { type: integer }
+        - in: query
+          name: friend_id
+          schema: { type: integer }
+        - in: query
+          name: active
+          schema: { type: boolean }
+      responses:
+        "200":
+          description: Loans list
+    post:
+      tags: [Loans]
+      security:
+        - bearerAuth: []
+      summary: Create loan
+      responses:
+        "201":
+          description: Loan created
+
+  /api/v1/loans/{id}:
+    get:
+      tags: [Loans]
+      security:
+        - bearerAuth: []
+      summary: Get loan
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Loan detail
+    patch:
+      tags: [Loans]
+      security:
+        - bearerAuth: []
+      summary: Update active loan expected_return_date
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Loan updated
+    delete:
+      tags: [Loans]
+      security:
+        - bearerAuth: []
+      summary: Delete loan
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Loan deleted
+
+  /api/v1/loans/{id}/return_item:
+    post:
+      tags: [Loans]
+      security:
+        - bearerAuth: []
+      summary: Mark loan as returned
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Loan returned

@@ -11,8 +11,8 @@ class CreateLoans < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :loans, [:item_id, :returned_at]
-    add_index :loans, [:friend_id, :returned_at]
-    add_index :loans, [:user_id, :returned_at]
+    add_index :loans, [ :item_id, :returned_at ]
+    add_index :loans, [ :friend_id, :returned_at ]
+    add_index :loans, [ :user_id, :returned_at ]
   end
 end

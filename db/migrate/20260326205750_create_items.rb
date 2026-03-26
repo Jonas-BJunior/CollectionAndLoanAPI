@@ -12,7 +12,7 @@ class CreateItems < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :items, [:user_id, :status]
-    add_index :items, [:user_id, :category]
+    add_index :items, [ :user_id, :status ]
+    add_index :items, [ :user_id, :category ]
   end
 end

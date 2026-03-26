@@ -1,5 +1,5 @@
 class Api::V1::AuthController < ApplicationController
-  before_action :authenticate_user!, only: [:me]
+  before_action :authenticate_user!, only: [ :me ]
 
   def register
     user = User.new(register_params)

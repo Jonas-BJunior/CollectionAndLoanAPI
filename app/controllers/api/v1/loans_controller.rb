@@ -1,6 +1,6 @@
 class Api::V1::LoansController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_loan, only: [:show, :update, :destroy, :return_item]
+  before_action :set_loan, only: [ :show, :update, :destroy, :return_item ]
 
   def index
     loans = current_user.loans.includes(:item, :friend)
@@ -30,7 +30,7 @@ class Api::V1::LoansController < ApplicationController
 
   def update
     if @loan.returned_at.present?
-      return render_unprocessable(["Returned loans cannot be updated"])
+      return render_unprocessable([ "Returned loans cannot be updated" ])
     end
 
     if @loan.update(loan_update_params)
@@ -51,7 +51,7 @@ class Api::V1::LoansController < ApplicationController
 
   def return_item
     if @loan.returned_at.present?
-      return render_unprocessable(["Loan is already returned"])
+      return render_unprocessable([ "Loan is already returned" ])
     end
 
     @loan.update!(returned_at: Time.current)

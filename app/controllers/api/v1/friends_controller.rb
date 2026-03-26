@@ -1,6 +1,6 @@
 class Api::V1::FriendsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_friend, only: [:show, :update, :destroy]
+  before_action :set_friend, only: [ :show, :update, :destroy ]
 
   def index
     render json: { data: current_user.friends.order(:name) }
